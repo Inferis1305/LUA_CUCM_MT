@@ -1,4 +1,16 @@
-# CUCM SIP Normalization Script
+# CUCM SIP Normalization Script for Webex Calling Multi-Tenant (MT) Location based routing
+The LUA normalization script is designed for specific deployments where Webex Calling Multi-Tenant (MT) and Cisco Dedicated Instance (DI) coexist, enabling location-aware PSTN breakout through DI. While Webex MT simplifies user provisioning and central management, it is different from the traditional CUCM routing model based on Calling Search Spaces (CSS), Partitions, Translation Patterns and Route Patterns.
+
+<img width="633" height="705" alt="image" src="https://github.com/user-attachments/assets/2b21e330-eb5e-4e50-b1bc-ea5e926e2110" />
+
+Customer UC User are split between MT and DI environments. It is important that some regions have centralized DI/SME/CUCM clusters with multiple registered PSTN gateways. Each MT region (e.g., APAC, EMEA, US) connects to its corresponding DI region over a single SIP trunk.
+MT call routing is location-aware, determined by internal MT logic and Location IDs. This differs from DI/SME/CUCM’s traditional routing model. The challenge is enabling DI/SME/CUCM to route inbound MT-originated PSTN calls to the correct regional gateway based on MT Location, not just trunk identity.
+
+Solution Approach
+To support local PSTN breakout from MT to DI/SME/CUCM with region-specific routing, our solution uses a single SIP trunk per MT region, connecting Webex MT to the DI/SME/CUCM cluster — for example, one trunk each for APAC, EMEA, and AMER. The user's location context is embedded in each SIP INVITE using the X-Cisco-Location-Info header, which MT includes automatically. On the DI/SME/CUCM side, a LUA normalization script applied to the inbound SIP trunk reads this header, maps the Location ID to a prefix, and modifies the Called Number accordingly to enable standard CUCM dial plan routing to the correct PSTN gateway.
+
+The script (LUA) matches the Location ID against a predefined mapping of Location IDs to digit prefixes (e.g., *91, *92, etc.). If a match is found, the script, it will modifies the Called Party Number by prepending the mapped prefix. Once the Called Number is normalized with the location-specific prefix, traditional CUCM routing logic (CSS, partitions, route patterns) is used to route the call to the correct PSTN gateway.
+
 
 ## Display Name Prefix & Location-Based Number Transformation
 
